@@ -1,0 +1,11 @@
+#+title: Todo
+
+* General todos
+** DONE Create a function that increases/decreases window size w/ j/k
+** DONE Bind the functions to M-S-J and M-S-K
+** DONE Create a function that increases/decreases window width w/ h/l
+** TODO Fix switch to project buffer
+** TODO Add perspective
+** TODO Add persp-projectile
+** TODO Add persp-projectile
+** TODO Add treemacs-perspective

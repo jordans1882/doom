@@ -1,0 +1,11 @@
+# -*- mode: snippet -*-
+# name: Hello world
+# uuid:
+# key: hello-world
+# condition: t
+# --
+
+(defun hello-world ()
+  "Prints 'Hello, World!' to the message buffer."
+  (interactive)
+  (message "Hello, World!"))
