@@ -1,0 +1,672 @@
+* MisEnPlace (for doom emacs)
+
+Mis en place is a term used by French chefs that means "everything in
+its place." It refers to the organization and preparation of
+ingredients and tools before starting cooking. It involves setting up
+and arranging everything needed for a smooth and efficient cooking
+process, such as measuring ingredients, chopping vegetables, and
+having utensils ready. It helps chefs work more efficiently and
+maintain focus during culinary tasks.
+
+For emacs, MisEnPlace-emacs is my personal emacs distribution. It is
+one part of my *mis en place*.
+
+To install, simply clone to the system emacs directory and then run
+emacs.
+
+```bash
+git clone /TODO/path/to/misenplace-emacs-repo $HOME/.emacs.d
+cd misenplace-emacs
+emacs -nw README.org # Open this document in MisEnPlace-emacs
+```
+
+One thing that separates emacs from other editors is `org-mode` and its
+many supporting extensions. I use org-mode to
+ - write a wiki
+ - maintain and search personal brain (e.g. obsidian)
+ - maintain an agenda/todo framework
+ - literate programming / reproducible research
+ - and (generally) entertain the AI so they're nice to me in the future
+
+Here's a list of code chunks that should run and get individual modes
+via poly-modes.  As a first step, verify that each code chunk will
+run.
+
+
+* Shake-a-day Code chunks I can run in org mode
+
+** C
+
+#+BEGIN_SRC C :compiler-args -O3 :results output
+
+      #include <stdio.h>
+      #include <stdlib.h>
+      #include <stdbool.h>
+      #include <time.h>
+
+      int runif(int lower, int upper) {
+          int random_number = (rand() % (upper - lower + 1)) + lower;
+          return random_number;
+      }
+
+
+      int dice_roll() {
+        return runif(1, 6);
+      }
+
+
+    void shake_a_day(int myArray[], int size) {
+        for (int i = 0; i < size; i++) {
+            myArray[i] = dice_roll();
+        }
+    }
+
+    bool is_yatzee(int arr[]) {
+    int num = arr[0];
+    for (int i = 1; i < 5; i++) {
+      if (arr[i] != num) {
+        return false;
+      }
+    }
+    return true;
+    }
+
+
+  int sample_wait_time() {
+    bool cond = true;
+    int count = 0;
+    int myArray[5];
+    while(cond) {
+      count += 1;
+      shake_a_day(myArray, 5);
+      bool val = is_yatzee(myArray);
+
+      if(val) {
+        cond = false;
+      }
+     }
+  return count;
+
+  }
+
+
+  double calculate_average(int array[], int length) {
+      int sum = 0;
+      for (int i = 0; i < length; i++) {
+          sum += array[i];
+      }
+      return sum / (double) length;
+  }
+
+
+  int main() {
+
+  clock_t start, end;
+  double cpu_time_used;
+  srand(time(NULL));
+  int nsamples = 5000;
+  int wait_times[nsamples];
+  start = clock();
+  for(int i=0; i<nsamples; i++) {
+      wait_times[i] = sample_wait_time();
+  }
+  end = clock();
+
+  cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+  printf("CPU time used: %f seconds\n", cpu_time_used);
+  double avg = calculate_average(wait_times, nsamples);
+  printf("Avg: %lf\n", avg);
+   return 0;
+  }
+
+#+END_SRC
+
+#+RESULTS:
+: CPU time used: 0.378901 seconds
+: Avg: 1319.288400
+
+** In C++
+
+#+begin_src C++ :compiler-args -O3 :flags -std=c++20 :results output
+  #include <iostream>
+  #include <vector>
+  #include <numeric>
+  #include <random>
+  #include <algorithm>
+  #include <chrono>
+
+  int runif(int lower, int upper) {
+    int random_number = (rand() % (upper - lower + 1)) + lower;
+    return random_number;
+  }
+
+  std::array<int, 5> shake_a_day_roll() {
+    std::array<int, 5> ret;
+    for(int i=0; i<5; i++) {
+      ret[i] = runif(1, 6);
+    }
+    return ret;
+  }
+
+
+  bool is_yatzee(const std::array<int, 5> roll) {
+    int num = roll[0];
+    for (int i = 1; i < 5; i++) {
+      if (roll[i] != num) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  int sample_wait_time() {
+    int count = 0;
+    while(!is_yatzee(shake_a_day_roll())) {
+      count += 1;
+    }
+    return count;
+  }
+
+  int main() {
+
+    int nsamples = 5000;
+    std::array<int, 5000> wait_times;
+    auto start = std::chrono::high_resolution_clock::now();
+    for(int i=0; i<nsamples; i++) {
+      wait_times[i] = sample_wait_time();
+    }
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    std::cout << "Elapsed time: " << static_cast<double>(duration.count()) / 1000000.0 << " seconds" << std::endl;
+    int sum = std::accumulate(wait_times.begin(), wait_times.end(), 0);
+    std::cout << "Estimate of mean (avg) = " << static_cast<double>(sum) / nsamples;
+
+  }
+#+end_src
+
+
+
+
+#+begin_src C++ :compiler-args -O3 :flags -std=c++20 :results output
+
+  #include <iostream>
+  #include <vector>
+  #include <random>
+  #include <ranges>
+  #include <range/v3/all.hpp>
+
+  namespace rv = ranges::views;
+  // Constant expression range view for generating bivariate random normal data
+  constexpr auto bivariateRandomNormal = [] {
+    // Return the range view using std::views::iota and a lambda function
+    return std::views::iota(0) | std::views::transform([&](int) {
+      static std::random_device rd;
+      static std::mt19937 generator(rd());
+      static std::normal_distribution<> normalDist(0.0, 1.0);
+      return std::pair(normalDist(generator), normalDist(generator));
+    });
+  }();
+
+
+    int main() {
+      auto data = bivariateRandomNormal | rv::take(10000);
+      for(auto row : data | rv::take(5)) {
+          std::cout << std::get<0>(row) << std::get<1>(row) << std::endl;
+      }
+      return 0;
+    }
+
+#+end_src
+
+
+#+RESULTS:
+: -0.8886151.54478
+: -0.2750920.769531
+: 0.3734560.83657
+: 0.3283790.477326
+: 0.903592-0.654525
+
+** In Fortran (WIP)
+
+#+BEGIN_SRC fortran :results output
+
+FUNCTION my_function(x)
+  IMPLICIT NONE
+  REAL(8) :: my_function
+  REAL(8), INTENT(IN) :: x
+
+  my_function = x**2 + 2*x + 1
+END FUNCTION my_function
+
+PROGRAM main
+  IMPLICIT NONE
+  REAL(8) :: result
+  REAL(8) :: x
+
+  x = 2.0
+  result = my_function(x)
+
+  WRITE(*,*) "The result is:", result
+
+END PROGRAM main
+
+#+END_SRC
+
+#+RESULTS:
+** Julia (WIP)
+
+#+BEGIN_SRC julia :results output
+
+    function roll_dice()
+        return rand(1:6)
+    end
+
+    function shake_a_day()
+        return [roll_dice() for _ in 1:5]
+    end
+
+
+    function find_duplicates(arr)
+        unique_elements = unique(arr)
+        ## duplicates = filter(x -> count(==, arr) > 1, unique_elements)
+        #return duplicates
+        return unique_elements
+    end
+
+    function is_yatzee(x)
+        return !(length(unique(x))≈2)
+    end
+
+    function sample_shake_a_day_wait_time()
+        count = 0.0
+        while(!is_yatzee(shake_a_day()))
+            count = count + 1.0
+        end
+        return count
+    end
+
+    # cnt = 0
+    # while(!(length(find_duplicates(shake_a_day())) == 3))
+    #   cnt +=  1
+    # end
+    # println(cnt)
+
+
+i = 0
+while i < 10
+    # code to be executed while i is less than 10
+    println(i)
+    i += 1  # increment the value of i by 1
+end
+
+
+    #    # println("Hello worldzz")
+    #    # println(roll_dice())
+    #
+    #    x = shake_a_day()
+    #  x
+    #  unique(x)
+    #
+    #  println("Counter")
+
+#+END_SRC
+
+#+RESULTS:
+: roll_dice (generic function with 1 method)
+: shake_a_day (generic function with 1 method)
+: find_duplicates (generic function with 1 method)
+: is_yatzee (generic function with 1 method)
+: sample_shake_a_day_wait_time (generic function with 1 method)
+: 0
+
+** In Lisp
+
+#+BEGIN_SRC emacs-lisp
+  (defun shake-a-day ()
+     "the shake-a-day function. Gives one sample from shake-a-day"
+     (let (result)
+     (dotimes (_ 5)
+       (setq result (cons (+ 1 (random 6)) result)))
+     (reverse result)))
+
+  (defun get-duplicates(x)
+    (let (seen-elements)
+  	(cl-loop for element in x
+             unless (cl-member element seen-elements :test 'equal)
+             do (push element seen-elements))
+    seen-elements))
+
+   (defun is-yatzee(x)
+
+
+
+   (= (length (get-duplicates x)) 1))
+
+
+  (defun sample-shake-a-day-wait-time ()
+  (let ((counter 0))
+  	(while (not (is-yatzee (shake-a-day)))
+  	;; do something
+  	(setq counter (1+ counter)))
+  	counter))
+
+  (defun get-wait-times (n)
+     "the shake-a-day function. Gives one sample from shake-a-day"
+     (let (result)
+     (dotimes (_ n)
+       (setq result (cons (sample-shake-a-day-wait-time) result)))
+     (reverse result)))
+
+
+  (defun estimate-wait-times ()
+      (/ (apply '+ (get-wait-times 300)) 300))
+
+  (let ((start-time (current-time)))
+    (estimate-wait-times)
+    (message "Elapsed time: %.2f seconds" (float-time (time-since start-time))))
+
+#+END_SRC
+
+#+RESULTS:
+: Elapsed time: 25.73 seconds
+
+** In Lua
+
+#+BEGIN_SRC lua :results output
+
+math.randomseed(os.time()) -- Initialize the random seed
+math.random(1, 6)
+
+function shakeADay()
+    local ret = {}
+    for i = 1, 5 do
+	ret[i] = math.random(1, 6)
+    end
+    return ret
+end
+
+
+function findDuplicates(tbl)
+    local duplicates = {}
+    local hash = {}
+
+    for _, value in ipairs(tbl) do
+        if hash[value] then
+            duplicates[value] = (duplicates[value] or 1) + 1
+        else
+            hash[value] = true
+        end
+    end
+
+    return duplicates
+end
+
+
+function nduplicates(tbl)
+  -- Table to store value frequencies
+  local frequency = {}
+
+  -- Iterate over the table and count frequencies
+  for _, value in ipairs(tbl) do
+      frequency[value] = (frequency[value] or 0) + 1
+  end
+
+  -- Count the number of duplicated values
+  local count = 0
+  for _, freq in pairs(frequency) do
+      if freq > 1 then
+          count = count + 1
+      end
+  end
+
+  return count
+end
+
+function printTable(tbl)
+    local str = "{"
+    for k, v in pairs(tbl) do
+        if type(k) == "number" then
+            str = str .. "[" .. k .. "] = " .. tostring(v) .. ", "
+        else
+            str = str .. k .. " = " .. tostring(v) .. ", "
+        end
+    end
+    str = str .. "}"
+    print(str)
+end
+
+function findMaxValue(tbl)
+  local maxValue = nil
+  for _, value in pairs(tbl) do
+    if maxValue == nil or value > maxValue then
+      maxValue = value
+    end
+  end
+  return maxValue
+end
+
+
+function sampleShakeADayWaitingTime()
+  local i = 0
+  while (not (findMaxValue(findDuplicates(shakeADay())) == 5)) do
+    i = i + 1
+  end
+  return i
+end
+
+function sampleNShakeADayWaitTimes(n)
+    local ret = {}
+    for i = 1, n do
+	ret[i] = sampleShakeADayWaitingTime()
+    end
+    return ret
+end
+
+function calculateMean(table)
+ local sum = 0
+  for i = 1, #table do
+    sum = sum + table[i]
+  end
+  return sum / #table
+end
+
+
+local startTime = os.clock()
+print("Estimated mean: " .. calculateMean(sampleNShakeADayWaitTimes(5000)))
+local endTime = os.clock()
+local executionTime = endTime - startTime
+print("Execution time: " .. executionTime .. " seconds")
+
+#+END_SRC
+
+#+RESULTS:
+: Estimated mean: 1273.1704
+: Execution time: 9.785455 seconds
+
+
+** Octave
+
+#+BEGIN_SRC octave :session :results output
+
+  function output = shake_a_day()
+      output = randi([1, 6], 5, 1);
+  end
+  function output = sample_shake_a_day_wait_time(x)
+    count = 0;
+    while (length(unique(shake_a_day())) != 1)
+  	count = count + 1;
+    end
+  output = count;
+  end
+
+  x = 1:100;
+
+  % Start the timer
+  tic;
+  result = arrayfun(@sample_shake_a_day_wait_time, x);
+  elapsed_time = toc;
+  printf("Elapsed time: %f seconds\n", elapsed_time);
+  mean(result)
+#+END_SRC
+
+#+RESULTS:
+: Elapsed time: 14.808280 seconds
+: ans = 1128.3
+
+** In Python
+
+#+begin_src python :results output
+  import time
+  import random
+  import statistics
+
+  def check_duplicates(values):
+      seen = set()
+      duplicates = []
+
+      for value in values:
+          if value in seen:
+              duplicates.append(True)
+          else:
+              seen.add(value)
+              duplicates.append(False)
+      return duplicates
+
+  dice = [x for x in range(1,7)]
+
+  samples = random.choices(dice, k=5)
+
+  def shake_a_day(x):
+      return random.choices([i for i in range(1,7)], k=5)
+
+  def sample_shake_a_day_wait_time(x):
+      count = 0
+      while(not (check_duplicates(shake_a_day(1)).count(True) == 4)):
+          count += 1
+      return count
+
+  nsamples = 600
+
+  # Get nsamples samples from the shake-a-day waiting time distribution
+  start_time = time.time()
+  wait_times = [sample_shake_a_day_wait_time(1) for x in range(1, nsamples)]
+  end_time = time.time()
+  execution_time = end_time - start_time
+
+  print(f"Execution time: {execution_time} seconds")
+  print(f"Mean wait time is: {statistics.mean(wait_times)}")
+#+end_src
+
+#+RESULTS:
+: Execution time: 1.2471013069152832 seconds
+: Mean wait time is: 1356.9799666110184
+
+** In R
+
+#+begin_src r :results output :cache yes
+
+  library(parallel)
+  library(magrittr)
+
+  nsamples <- 200
+
+  # Ground truth
+  shake_a_day_rate <- 1/(6 *(1/6)^(5))
+  sample <- rexp(nsamples, 1/shake_a_day_rate)
+  # hist(sample)
+
+  shake_a_day_roll <- function(x) sample(x = 1:6, size = 5, replace=T)
+
+  is_yatzee <- function(x) duplicated(x)[-1] %>% all
+  sample_shake_a_day_wait_time <- function(x) {
+      counter <- 0
+
+      while(!(shake_a_day_roll() %>% is_yatzee)) {
+          counter <- counter + 1
+      }
+      return(counter)
+  }
+
+  time_to_compute <- system.time({
+      waiting_times <- mclapply(rep(1, 10000), sample_shake_a_day_wait_time, mc.cores = 10) %>% simplify2array
+  })
+
+  # kinda seems like its a ~ 1/1360 chance of winning shake_a_day
+  paste("Mean waiting time: ", mean(waiting_times)) %>% print
+  paste("SD waiting time: ", sd(waiting_times)) %>% print
+  paste("Time to compute: ", time_to_compute[3] , " seconds") %>% print
+
+  paste("Real(calculated) mean/sd :", 1/(6 *(1/6)^(5))) %>% print
+
+#+end_src
+
+
+** In OCaml (WIP)
+
+
+#+begin_src ocaml :exports both :results output
+
+(* This is a comment
+let result = 42 in
+print_endline (string_of_int result)
+*)
+
+let my_string = "helloz worzzz" in
+print_endline my_string
+
+(* This is a comment
+let dice_roll () =
+  Random.int 6 + 1
+
+let roll = dice_roll() in
+print_endline (string_of_int roll)
+*)
+#+end_src
+
+
+#+RESULTS:
+: * * *           * * * * * * helloz worzzz
+
+
+
+* Miscelaneous code chunks
+** Maxima
+#+begin_src maxima :results raw :exports results
+f(x) := x^2 + 5*x + 6;
+df(x) := diff(f(x), x);
+tex(f(x));
+#+end_src
+
+#+RESULTS:
+$$x^2+5\,x+6$$
+
+** gnuplot (WIP... used to work w/ pdf)
+
+#+BEGIN_SRC gnuplot :file example.pdf :exports results :results file graphics
+set terminal pdf
+set output "example.pdf"
+set xlabel "x"
+set ylabel "y"
+set title "Sine Wave"
+
+
+#+END_SRC
+
+#+RESULTS:
+[[file:example.pdf]]
+
+
+** Plot in R
+
+#+BEGIN_SRC R :file example.png :exports results :results raw file
+library(ggplot2)
+data = data.frame(x = 1:10, y = 1:10)
+png("example.png")
+ggplot(data, aes(x, y)) +
+  geom_point() +
+  theme_dark()
+dev.off()
+#+END_SRC
+
+#+RESULTS:
+[[file:example.png]]

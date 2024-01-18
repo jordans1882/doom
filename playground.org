@@ -1,0 +1,246 @@
+#+TITLE: The sine function
+#+OPTIONS: toc:nil num:nil author:nil email:nil
+#+AUTHOR: Jordan Schupbach
+#+EMAIL: jordans1882@gmail.com
+
+* An org mode playground
+
+This document serves as a showcase to demonstrate the capabilities of org mode. Let's start
+with some R code chunks to create some plots.
+
+** Test out writing R code chunks
+
+The sine function, commonly denoted as ~sin(x)~, is a mathematical function that
+relates the angle x to the ratio of the length of the side opposite the angle to
+the length of the hypotenuse in a right-angled triangle. It is a periodic
+function, oscillating between -1 and 1 over the entire real number line. The
+sine function is widely used in various branches of mathematics and science,
+particularly in trigonometry and wave analysis.
+
+The definition of the sine function is:
+
+\[ \sin(x) = x - \frac{{x^3}}{{3!}} + \frac{{x^5}}{{5!}} - \frac{{x^7}}{{7!}} + \frac{{x^9}}{{9!}} - \dotsb = \sum_{n=0}^{\infty} (-1)^n \frac{{x^{2n+1}}}{{(2n+1)!}} \]
+
+Below, we provide a plot of the sine function from
+# Here's a code cunk to produce the sine function from -2pi to 2pi.
+#+begin_src R :file sine.png :results graphics :exports none
+  library(ggplot2)
+
+  # Create a sample data frame
+  x <- seq(-6.28, 6.28, length.out = 100)
+  df <- data.frame(x = x, y = sin(x))
+
+  # Create the plot
+  plot <- ggplot(df, aes(x = x, y = y)) +
+       labs(title = "The Sine Function") +
+       xlim(c(-6.28, 6.28)) +
+       theme(
+         plot.title = element_text(hjust = 0.5),
+         text = element_text(color = rgb(0.9, 0.8, 0.3, 1), size = 16, face = "bold"),
+         plot.background = element_rect(fill =  rgb(0.1, 0.2, 0.2, 1)),
+         panel.background = element_rect(fill = rgb(0.1, 0.2, 0.4, 1), color = 'purple'),
+         panel.grid = element_line(color = rgb(0.9, 0.3, 0.7, 1)),
+         axis.text = element_text(color = rgb(0.9, 0.3, 0.7, 1)),
+         axis.ticks = element_line(color = "blue")) +
+         geom_point(color = rgb(0.0, 0.9, 1, 1), size = 3) +
+         geom_line(color =  rgb(0.0, 0.9, 1, 1)
+       )
+  print(plot)
+#+end_src
+
+#+RESULTS:
+
+[[file:./test.png]]
+
+
+
+Here's a figure describing the relation of sine and cosine to lengths on the
+unit circle.
+
+
+#+BEGIN_SRC R :file circle.png :results graphics
+library(ggplot2)
+
+# Create data for the circle
+theta <- seq(0, 2 * pi, length.out = 100)
+x <- cos(theta)
+y <- sin(theta)
+
+# Create the plot
+plot = ggplot() +
+  geom_polygon(aes(x, y), fill = rgb(0.1, 0.2, 0.4, 0), color = rgb(0.9, 0.3, 0.7, 1), linewidth = 3) +
+  geom_segment(aes(x = 0, y = 0, xend = cos(0), yend = sin(0)),
+               color = "white", arrow = arrow(length = unit(0.3, "cm")), linewidth = 1) +
+  geom_segment(aes(x = 0, y = 0, xend = cos(pi/3), yend = sin(pi/3)),
+               color = "white", arrow = arrow(length = unit(0.3, "cm")), linewidth = 1) +
+  geom_text(aes(label = "sin(theta)", x = 1.1 * cos(0), y = 1.1 * sin(0)),
+            color = "white", fontface = "bold", size = 4) +
+  geom_text(aes(label = "cos(theta)", x = 1.1 * cos(pi/3), y = 1.1 * sin(pi/3)),
+            color = "white", fontface = "bold", size = 4) +
+  coord_equal() +
+  xlim(-1.5, 1.5) +
+  ylim(-1.5, 1.5) +
+ theme(text = element_text(color = rgb(0.9, 0.8, 0.8, 1)),
+            plot.background = element_rect(fill =  rgb(0.1, 0.2, 0.2, 1)),
+            panel.background = element_rect(fill = rgb(0.1, 0.2, 0.2, 1), color = 'purple'),
+            panel.grid = element_line(color = rgb(0.9, 0.3, 0.7, 1)),
+            axis.text = element_text(color = rgb(0.9, 0.3, 0.7, 1)),
+            axis.ticks = element_line(color = "blue")) +
+            geom_point(color = rgb(0.0, 0.9, 1, 1), size = 3) +
+            geom_line(color =  rgb(0.0, 0.9, 1, 1))
+            print(plot)
+
+#+END_SRC
+
+#+RESULTS:
+
+[[file:./circle.png]]
+
+
+
+** Testing out c++ includes code chunks
+
+#+begin_src C++ :includes "/usr/include/eigen3/Eigen/Dense" :compiler-args -O3 :flags -std=c++20 :results output
+
+  #include <iostream>
+  #include <vector>
+  #include <random>
+  #include <range/v3/all.hpp>
+  #include <iostream>
+  #include <Eigen/Dense>
+
+  auto generateMatrix(int n, int m) {
+      std::random_device rd;
+      std::mt19937 gen(rd());
+      std::normal_distribution<double> dist(0.0, 1.0);
+      auto rng = ranges::views::iota(0, n) | ranges::views::transform([&](int) {
+          return ranges::views::iota(0, m) | ranges::views::transform([&](int) {
+              return dist(gen);
+          });
+      });
+      return rng | ranges::views::transform([](auto&& range) {
+          return ranges::to<std::vector<double>>(range);
+      }) | ranges::to<std::vector<std::vector<double>>>();
+  }
+
+  int main() {
+      int n = 6;
+      int m = 6;
+
+      const auto matrix = generateMatrix(n, m);
+
+      // Print the matrix
+      for (const auto& row : matrix) {
+          for (double element : row) {
+              std::cout << element << " ";
+          }
+          std::cout << std::endl;
+      }
+
+      return 0;
+  }
+#+end_src
+
+#+RESULTS:
+
+Here's a code chunk in C++ taking 10000 samples from the shake-a-day wait-time
+distribution:
+
+#+begin_src C++ :compiler-args -O3 :flags -std=c++20 :results output
+  #include <iostream>
+  #include <vector>
+  #include <numeric>
+  #include <random>
+  #include <algorithm>
+  #include <chrono>
+
+  int runif(int lower, int upper) {
+    int random_number = (rand() % (upper - lower + 1)) + lower;
+    return random_number;
+  }
+
+  std::array<int, 5> shake_a_day_roll() {
+    std::array<int, 5> ret;
+    for(int i=0; i<5; i++) {
+      ret[i] = runif(1, 6);
+    }
+    return ret;
+  }
+
+
+  bool is_yatzee(const std::array<int, 5> roll) {
+    int num = roll[0];
+    for (int i = 1; i < 5; i++) {
+      if (roll[i] != num) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  int sample_wait_time() {
+    int count = 0;
+    while(!is_yatzee(shake_a_day_roll())) {
+      count += 1;
+    }
+    return count;
+  }
+
+  int main() {
+
+    int nsamples = 10000;
+    std::array<int, 10000> wait_times;
+    auto start = std::chrono::high_resolution_clock::now();
+    for(int i=0; i<nsamples; i++) {
+      wait_times[i] = sample_wait_time();
+    }
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    std::cout << "Elapsed time: " << static_cast<double>(duration.count()) / 1000000.0 << " seconds" << std::endl;
+    int sum = std::accumulate(wait_times.begin(), wait_times.end(), 0);
+    std::cout << "Estimate of mean (avg) = " << static_cast<double>(sum) / nsamples;
+
+  }
+#+end_src
+
+#+RESULTS:
+: Elapsed time: 0.797054 seconds
+: Estimate of mean (avg) = 1297.43
+
+
+We see that it only took 8.2243 seconds to compute the 50000 samples resulting
+in an estimated rate parameter for the exponential distribution being 1298.31
+(as opposed to)
+
+
+#+begin_src C++ :compiler-args -O3 :flags -std=c++20 :results output
+  #include <iostream>
+  #include <cmath>
+
+  namespace dm {
+  double sin(double x) {
+    int n = 10;
+    double result = 0.0;
+    int sign = 1;
+    for (int i = 1; i <= n; ++i) {
+      result += sign * std::pow(x, 2 * i - 1) / std::tgamma(2 * i);
+      sign *= -1;
+    }
+    return result;
+  }
+}
+
+  int main() {
+
+      double x = 0.5;
+      double sinx = dm::sin(x);
+      std::cout << "Taylor series approximation of sin(" << x << ") = " << sinx << std::endl;
+
+      return 0;
+  }
+
+
+#+end_src
+
+#+RESULTS:
+: Taylor series approximation of sin(0.5) = 0.479426
